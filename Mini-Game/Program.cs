@@ -6,6 +6,7 @@ int height = Console.WindowHeight - 1;
 int width = Console.WindowWidth - 5;
 bool shouldExit = false;
 
+
 // Console position of the player
 int playerX = 0;
 int playerY = 0;
@@ -25,15 +26,38 @@ string player = states[0];
 int food = 0;
 
 
-InitializeGame();
-while (!shouldExit) 
-{
-    Move();
-}
+    InitializeGame();
+    while (!shouldExit)
+    {
+        if (TerminalResized())
+        {
+            Console.Clear();
+            Console.WriteLine("Console was resized. Program exiting.");
+            return;
+        } 
+        else if (NonDirectionalKey())
+        {
+            return;
+        }
+         else
+         {
+             Move();
+             PlayerEatTheFood();
+         }   
+    }
+
+    bool NonDirectionalKey()
+    {
+        var key = Console.ReadKey(false).Key;
+        return key != ConsoleKey.DownArrow && key != ConsoleKey.UpArrow &&
+               key != ConsoleKey.LeftArrow && key != ConsoleKey.RightArrow;
+    }
 
 // Returns true if the Terminal was resized 
 bool TerminalResized() 
 {
+    height = Console.WindowHeight - 1;
+    width = Console.WindowWidth - 5;
     return height != Console.WindowHeight - 1 || width != Console.WindowWidth - 5;
 }
 
@@ -46,16 +70,31 @@ void ShowFood()
     // Update food position to a random location
     foodX = random.Next(0, width - player.Length);
     foodY = random.Next(0, height - 1);
-
     // Display the food at the location
     Console.SetCursorPosition(foodX, foodY);
     Console.Write(foods[food]);
 }
 
+void PlayerEatTheFood()
+{
+    if (playerX == foodX && playerY == foodY)
+    {
+        ChangePlayer();
+        FreezePlayer();
+        RandomPlayerCharacter();
+    }
+    else
+    {
+        return;
+    } 
+    ShowFood();
+    
+};
+
 // Changes the player to match the food consumed
 void ChangePlayer() 
 {
-    player = states[food];
+    player = states[2];
     Console.SetCursorPosition(playerX, playerY);
     Console.Write(player);
 }
@@ -67,12 +106,18 @@ void FreezePlayer()
     player = states[0];
 }
 
+string RandomPlayerCharacter()
+{ 
+    player = states[random.Next(0, 2)];
+    return player;
+}
 // Reads directional input from the Console and moves the player
 void Move() 
 {
     int lastX = playerX;
     int lastY = playerY;
-    
+
+   
     switch (Console.ReadKey(true).Key) 
     {
         case ConsoleKey.UpArrow:
